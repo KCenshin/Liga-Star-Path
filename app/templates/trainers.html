@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import role_tag %}
+{% block title %}Entrenadores · Liga Star Path{% endblock %}
+{% block content %}
+<h1>Entrenadores</h1>
+<form class="searchbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre de usuario…">
+  <button class="btn btn-primary">Buscar</button>
+</form>
+<div class="trainer-grid">
+  {% for u in users %}
+  <a class="card trainer-mini" href="{{ url_for('main.trainer_card', username=u.username) }}">
+    <img src="{{ u.avatar_url }}" alt="" class="avatar-sm">
+    <div>
+      <strong>{{ u.username }}</strong>
+      {{ role_tag(u) }}
+      <div class="muted small">{{ u.badge_count }} medalla{{ '' if u.badge_count == 1 else 's' }}</div>
+    </div>
+  </a>
+  {% else %}
+  <p class="muted">No se encontraron entrenadores.</p>
+  {% endfor %}
+</div>
+{% endblock %}

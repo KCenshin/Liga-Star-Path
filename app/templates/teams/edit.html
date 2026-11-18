@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if team else 'Nuevo' }} equipo · Liga Star Path{% endblock %}
+{% block content %}
+<h1>{{ 'Editar equipo' if team else 'Nuevo equipo' }}</h1>
+<form method="post" id="team-form" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <label class="field grow"><span>Nombre del equipo</span>
+      <input name="team_name" required maxlength="60"
+             value="{{ form.team_name if form else (team.team_name if team else '') }}"></label>
+    <label class="field"><span>Formato</span>
+      <select name="format_tag">
+        {% set cur = form.format_tag if form else (team.format_tag if team else '') %}
+        {% for f in formats %}<option {{ 'selected' if f == cur }}>{{ f }}</option>{% endfor %}
+      </select></label>
+  </div>
+
+  <div class="builder" id="builder"></div>
+
+  <div class="form-actions">
+    <button class="btn btn-primary">Guardar equipo</button>
+    <a class="btn btn-ghost" href="{{ url_for('teams.my_teams') }}">Cancelar</a>
+  </div>
+</form>
+
+<template id="slot-tpl">
+  <div class="slot card">
+    <div class="slot-head">
+      <span class="slot-num"></span>
+      <button type="button" class="btn btn-ghost btn-sm slot-clear" title="Vaciar ranura">✕</button>
+    </div>
+    <div class="slot-poke">
+      <img class="sprite" alt="">
+      <div class="slot-poke-info"><div class="slot-poke-name muted">Vacío</div><div class="types"></div></div>
+    </div>
+    <div class="ac">
+      <input type="search" class="ac-input" placeholder="Buscar Pokémon…" autocomplete="off">
+      <ul class="ac-list" hidden></ul>
+    </div>
+    <input type="hidden" class="f-id">
+    <label class="field"><span>Mote</span><input class="f-nickname" maxlength="30"></label>
+    <label class="field"><span>Objeto</span><input class="f-item" maxlength="60" placeholder="Ej. Restos"></label>
+    <label class="field"><span>Habilidad</span><select class="f-ability"><option value="">—</option></select></label>
+    <label class="field"><span>Teratipo</span>
+      <select class="f-tera"><option value="">—</option>
+        {% for t in types %}<option value="{{ t }}">{{ t|capitalize }}</option>{% endfor %}
+      </select></label>
+  </div>
+</template>
+{% endblock %}
+{% block scripts %}
+<script>
+  window.TEAM_SLOTS = {{ slots|tojson }};
+  window.UNKNOWN_SPRITE = "{{ url_for('static', filename='img/unknown.svg') }}";
+</script>
+<script src="{{ url_for('static', filename='js/team_builder.js') }}"></script>
+{% endblock %}

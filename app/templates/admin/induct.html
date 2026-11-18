@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Registrar campeón · Liga Star Path{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <h1>🏆 Registrar campeón de temporada</h1>
+  <p class="muted small">Se guardará una <strong>instantánea JSON</strong> del equipo elegido (Pokémon, sprites, objetos, motes) y una copia del avatar actual.
+    Cambios futuros del jugador no alterarán este registro.</p>
+  {% if users %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field"><span>Campeón</span>
+      <select name="user_id" id="hof-user" required>
+        <option value="">Selecciona…</option>
+        {% for u in users %}<option value="{{ u.id }}">{{ u.username }} ({{ u.role_label }})</option>{% endfor %}
+      </select></label>
+    <label class="field"><span>Equipo ganador</span>
+      <select name="team_id" id="hof-team" required><option value="">Primero elige al campeón</option></select></label>
+    <label class="field"><span>Título de temporada</span>
+      <input name="season_title" required maxlength="80" placeholder="Ej. Temporada 1 · Invierno 2026"></label>
+    <label class="field"><span>Notas del administrador</span>
+      <textarea name="admin_notes" rows="3" placeholder="Ej. Final 3-2 contra el Alto Mando"></textarea></label>
+    <div class="form-actions">
+      <button class="btn btn-primary">Ingresar al Salón de la Fama</button>
+      <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Cancelar</a>
+    </div>
+  </form>
+  {% else %}
+    <p>No hay usuarios con equipos registrados.</p>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const TEAMS = {{ teams_by_user|tojson }};
+  const userSel = document.getElementById('hof-user');
+  const teamSel = document.getElementById('hof-team');
+  userSel.addEventListener('change', () => {
+    teamSel.innerHTML = '';
+    (TEAMS[userSel.value] || []).forEach(([id, name, active]) => {
+      teamSel.appendChild(new Option(name + (active ? ' (activo)' : ''), id, active, active));
+    });
+  });
+</script>
+{% endblock %}

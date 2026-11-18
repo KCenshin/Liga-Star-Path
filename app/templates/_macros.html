@@ -1,0 +1,31 @@
+{% macro role_tag(user) -%}
+<span class="role-tag" style="--role: {{ user.role_color }}">{{ user.role_label }}</span>
+{%- endmacro %}
+
+{% macro type_chip(t) -%}
+{% if t %}<span class="type type-{{ t }}">{{ t }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro badge_icon(badge, size=64) -%}
+{% if badge.image_url %}
+  <img class="badge-img" src="{{ badge.image_url }}" alt="{{ badge.name }}" width="{{ size }}" height="{{ size }}">
+{% else %}
+  <span class="badge-gem type-bg-{{ badge.element_type }}" style="width:{{ size }}px;height:{{ size }}px">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+  </span>
+{% endif %}
+{%- endmacro %}
+
+{% macro pokemon_slot(sprite, species, nickname=None, types=(), item=None, ability=None, tera=None) -%}
+<div class="poke-slot">
+  <img src="{{ sprite or url_for('static', filename='img/unknown.svg') }}" alt="{{ species }}" loading="lazy" class="sprite">
+  <div class="poke-name">{{ nickname or species }}</div>
+  {% if nickname %}<div class="poke-species">{{ species }}</div>{% endif %}
+  <div class="types">{% for t in types %}{{ type_chip(t) }}{% endfor %}</div>
+  <dl class="poke-meta">
+    {% if item %}<dt>Objeto</dt><dd>{{ item }}</dd>{% endif %}
+    {% if ability %}<dt>Habilidad</dt><dd>{{ ability|replace('-', ' ') }}</dd>{% endif %}
+    {% if tera %}<dt>Tera</dt><dd>{{ type_chip(tera) }}</dd>{% endif %}
+  </dl>
+</div>
+{%- endmacro %}

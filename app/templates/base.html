@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Liga Star Path{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/pokeball.svg') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('main.index') }}">
+    <img src="{{ url_for('static', filename='img/pokeball.svg') }}" alt="" width="28" height="28">
+    Liga Star Path
+  </a>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Menú">
+  <label for="nav-toggle" class="nav-burger"><span></span></label>
+  <nav class="nav">
+    <a href="{{ url_for('main.trainers') }}">Entrenadores</a>
+    <a href="{{ url_for('main.hall_of_fame') }}">Salón de la Fama</a>
+    {% if current_user.is_authenticated %}
+      <a href="{{ url_for('teams.my_teams') }}">Mis equipos</a>
+      {% if current_user.has_role('leader', 'admin') %}<a href="{{ url_for('leader.panel') }}">Panel de Líder</a>{% endif %}
+      {% if current_user.has_role('admin') %}<a href="{{ url_for('admin.dashboard') }}">Administración</a>{% endif %}
+      <a class="nav-me" href="{{ url_for('main.trainer_card', username=current_user.username) }}">
+        <img src="{{ current_user.avatar_url }}" alt="" width="28" height="28">{{ current_user.username }}
+      </a>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-ghost btn-sm">Salir</button>
+      </form>
+    {% else %}
+      <a href="{{ url_for('auth.login') }}">Entrar</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('auth.register') }}">Registrarse</a>
+    {% endif %}
+  </nav>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="flash flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  Liga Star Path · Datos de Pokémon por <a href="https://pokeapi.co" target="_blank" rel="noopener">PokéAPI</a>.
+  Proyecto de fans sin fines de lucro.
+</footer>
+{% block scripts %}{% endblock %}
+</body>
+</html>

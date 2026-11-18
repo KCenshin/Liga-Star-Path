@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Editar perfil · Liga Star Path{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <h1>Editar perfil</h1>
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="avatar-edit">
+      <img id="avatar-preview" class="avatar-lg" src="{{ current_user.avatar_url }}" alt="Avatar actual">
+      <label class="field">
+        <span>Avatar (.jpg, .png o .webp)</span>
+        <input type="file" name="avatar" accept=".jpg,.jpeg,.png,.webp" id="avatar-input">
+        <small class="muted">Se recorta al centro en 1:1 y se reduce a 300×300 px automáticamente.</small>
+      </label>
+    </div>
+    <label class="field">
+      <span>Título de entrenador</span>
+      <input name="trainer_title" maxlength="60" value="{{ current_user.trainer_title or '' }}" placeholder="Ej. Domador de Dragones">
+    </label>
+    <label class="field">
+      <span>Código de amigo / consola</span>
+      <input name="friend_code" maxlength="32" value="{{ current_user.friend_code or '' }}" placeholder="SW-1234-5678-9012">
+    </label>
+    <div class="form-actions">
+      <button class="btn btn-primary">Guardar</button>
+      <a class="btn btn-ghost" href="{{ url_for('main.trainer_card', username=current_user.username) }}">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('avatar-input').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) document.getElementById('avatar-preview').src = URL.createObjectURL(f);
+});
+</script>
+{% endblock %}

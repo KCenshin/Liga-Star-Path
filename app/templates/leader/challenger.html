@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "_macros.html" import role_tag, badge_icon, pokemon_slot %}
+{% block title %}{{ target.username }} · Panel de Líder{% endblock %}
+{% block content %}
+<a href="{{ url_for('leader.panel') }}" class="small">← Volver al panel</a>
+
+<div class="card tc-header" style="--role: {{ target.role_color }}">
+  <img class="avatar-md" src="{{ target.avatar_url }}" alt="">
+  <div class="tc-ident">
+    <h1>{{ target.username }} <span class="muted small">#{{ target.id }}</span></h1>
+    {{ role_tag(target) }}
+    <div class="progress-wrap">
+      <div class="progress"><div style="width: {{ target.badge_count / target.badges_needed * 100 }}%"></div></div>
+      <span class="small">{{ target.badge_count }}/{{ target.badges_needed }} medallas rumbo al Alto Mando</span>
+    </div>
+  </div>
+  <a class="btn btn-ghost btn-sm tc-edit" href="{{ url_for('main.trainer_card', username=target.username) }}">Ver Ficha pública</a>
+</div>
+
+<section class="card">
+  <h2>{{ 'Medallas' if badges|length > 1 else 'Tu medalla' }}</h2>
+  {% for b in badges %}
+    {% set ub = earned.get(b.id) %}
+    <div class="award-row">
+      <div class="badge-cell {{ 'earned' if ub else 'missing' }}">{{ badge_icon(b, 48) }}</div>
+      <div class="grow">
+        <strong>{{ b.name }}</strong>
+        {% if ub %}
+          <div class="small">Obtenida el {{ ub.awarded_at.strftime('%d/%m/%Y') }}
+            {% if ub.awarded_by %}· por {{ ub.awarded_by.username }}{% endif %}
+            {% if ub.battle_notes %}· “{{ ub.battle_notes }}”{% endif %}</div>
+        {% else %}
+          <div class="small muted">Aún no obtenida</div>
+        {% endif %}
+      </div>
+      {% if ub %}
+        <form method="post" action="{{ url_for('leader.revoke', user_id=target.id) }}"
+              onsubmit="return confirm('¿Revocar la {{ b.name }}? Úsalo sólo para corregir errores.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="badge_id" value="{{ b.id }}">
+          <button class="btn btn-danger btn-sm">Revocar</button>
+        </form>
+      {% elif target.id != current_user.id %}
+        <form method="post" action="{{ url_for('leader.award', user_id=target.id) }}" class="award-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="badge_id" value="{{ b.id }}">
+          <input name="battle_notes" maxlength="255" placeholder="Notas de combate (opcional) · Ej. Victoria 2-0 en revancha">
+          <button class="btn btn-primary btn-sm">Otorgar Medalla</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="muted">No tienes una medalla asignada.</p>
+  {% endfor %}
+</section>
+
+<section class="card">
+  {% set team = target.active_team %}
+  <h2>Equipo registrado {% if team %}<span class="muted small">· {{ team.team_name }} ({{ team.format_tag }})</span>{% endif %}</h2>
+  {% if team and team.members %}
+    <div class="team-grid">
+      {% for m in team.members %}{% set c = m.cache %}
+        {{ pokemon_slot(c.sprite_url if c else None, m.label, m.nickname,
+                        [c.type_1, c.type_2]|select|list if c else [], m.item, m.ability, m.tera_type) }}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">El retador no tiene un equipo activo registrado.</p>
+  {% endif %}
+</section>
+{% endblock %}

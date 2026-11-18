@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="error-page">
+  <img src="{{ url_for('static', filename='img/pokeball.svg') }}" alt="" width="96" height="96">
+  <h1>{{ code }}</h1>
+  <p>{{ msg }}</p>
+  <a class="btn btn-primary" href="{{ url_for('main.index') }}">Volver al inicio</a>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% from "_macros.html" import role_tag, badge_icon, pokemon_slot %}
+{% block title %}{{ user.username }} · Ficha de Entrenador{% endblock %}
+{% block content %}
+<article class="trainer-card">
+  {# --- Bloque 1: Cabecera --- #}
+  <header class="tc-header" style="--role: {{ user.role_color }}">
+    <img class="avatar-lg" src="{{ user.avatar_url }}" alt="Avatar de {{ user.username }}">
+    <div class="tc-ident">
+      <h1>{{ user.username }}</h1>
+      {% if user.trainer_title %}<div class="tc-title">{{ user.trainer_title }}</div>{% endif %}
+      {{ role_tag(user) }}
+      <div class="tc-fc">
+        <span class="muted">Código de amigo:</span>
+        <code>{{ user.friend_code or '—' }}</code>
+      </div>
+    </div>
+    {% if current_user.is_authenticated and current_user.id == user.id %}
+      <a class="btn btn-ghost btn-sm tc-edit" href="{{ url_for('main.edit_profile') }}">Editar perfil</a>
+    {% elif current_user.is_authenticated and current_user.has_role('leader', 'admin') %}
+      <a class="btn btn-primary btn-sm tc-edit" href="{{ url_for('leader.challenger', user_id=user.id) }}">Gestionar medallas</a>
+    {% endif %}
+  </header>
+
+  {# --- Bloque 2: Medallero --- #}
+  <section class="tc-block">
+    <div class="tc-block-head">
+      <h2>Medallero</h2>
+      {% set total = badges|length %}
+      <div class="progress-wrap" title="Progreso rumbo al Alto Mando">
+        <div class="progress"><div style="width: {{ (user.badge_count / user.badges_needed * 100) if user.badges_needed else 0 }}%"></div></div>
+        <span class="small">{{ user.badge_count }}/{{ user.badges_needed }}
+          {% if user.ready_for_elite_four %}· <strong class="accent">¡Listo para el Alto Mando!</strong>{% endif %}</span>
+      </div>
+    </div>
+    {% if badges %}
+    <div class="badge-grid">
+      {% for b in badges %}
+        {% set ub = earned.get(b.id) %}
+        <div class="badge-cell {{ 'earned' if ub else 'missing' }}"
+             title="{% if ub %}{{ b.name }} · obtenida el {{ ub.awarded_at.strftime('%d/%m/%Y') }}{% if ub.awarded_by %} · otorgada por {{ ub.awarded_by.username }}{% endif %}{% else %}{{ b.name }} · pendiente{% endif %}">
+          {{ badge_icon(b, 60) }}
+          <span class="badge-name">{{ b.name }}</span>
+          {% if ub %}<span class="badge-date">{{ ub.awarded_at.strftime('%d/%m/%Y') }}</span>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="muted">La liga aún no tiene medallas configuradas.</p>
+    {% endif %}
+  </section>
+
+  {# --- Bloque 3: Equipo Activo --- #}
+  <section class="tc-block">
+    {% set team = user.active_team %}
+    <div class="tc-block-head">
+      <h2>Equipo activo</h2>
+      {% if team %}<span class="muted small">{{ team.team_name }} · {{ team.format_tag }}</span>{% endif %}
+    </div>
+    {% if team and team.members %}
+      <div class="team-grid">
+        {% for m in team.members %}
+          {% set c = m.cache %}
+          {{ pokemon_slot(c.sprite_url if c else None, m.label, m.nickname,
+                          [c.type_1, c.type_2]|select|list if c else [], m.item, m.ability, m.tera_type) }}
+        {% endfor %}
+        {% for _ in range(6 - team.members|length) %}<div class="poke-slot empty"></div>{% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Este entrenador aún no ha registrado un equipo activo.</p>
+    {% endif %}
+  </section>
+</article>
+{% endblock %}

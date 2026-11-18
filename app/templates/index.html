@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_icon, role_tag %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>Bienvenido a la <span class="accent">Liga Star Path</span></h1>
+    <p>Arma tu equipo, reta a los Líderes de Gimnasio, junta las medallas y gana tu lugar frente al Alto Mando.</p>
+    <div class="hero-actions">
+      {% if current_user.is_authenticated %}
+        <a class="btn btn-primary" href="{{ url_for('main.trainer_card', username=current_user.username) }}">Ver mi Ficha</a>
+        <a class="btn btn-ghost" href="{{ url_for('teams.my_teams') }}">Mis equipos</a>
+      {% else %}
+        <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Comenzar mi aventura</a>
+        <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Ya tengo cuenta</a>
+      {% endif %}
+    </div>
+  </div>
+  <img class="hero-ball" src="{{ url_for('static', filename='img/pokeball.svg') }}" alt="">
+</section>
+
+<section>
+  <h2>Gimnasios de la liga</h2>
+  {% if badges %}
+  <div class="gym-grid">
+    {% for b in badges %}
+    <div class="card gym">
+      {{ badge_icon(b, 56) }}
+      <div>
+        <strong>{{ b.name }}</strong>
+        <div class="muted small">Tipo <span class="type type-{{ b.element_type }}">{{ b.element_type }}</span></div>
+        <div class="small">
+          {% if b.leader %}Líder: <a href="{{ url_for('main.trainer_card', username=b.leader.username) }}">{{ b.leader.username }}</a>
+          {% else %}<span class="muted">Sin líder asignado</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="muted">Aún no hay medallas. Un administrador puede crearlas (o ejecutar <code>flask seed-badges</code>).</p>
+  {% endif %}
+</section>
+
+{% if elite %}
+<section>
+  <h2>Alto Mando</h2>
+  <div class="trainer-grid">
+    {% for u in elite %}
+    <a class="card trainer-mini" href="{{ url_for('main.trainer_card', username=u.username) }}">
+      <img src="{{ u.avatar_url }}" alt="" class="avatar-sm"><div><strong>{{ u.username }}</strong>{{ role_tag(u) }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if champions %}
+<section>
+  <h2>Campeones recientes</h2>
+  <div class="trainer-grid">
+    {% for c in champions %}
+    <a class="card trainer-mini" href="{{ url_for('main.hall_of_fame') }}#hof-{{ c.id }}">
+      <span class="crown">👑</span>
+      <div><strong>{{ c.trainer_name_snapshot }}</strong><div class="muted small">{{ c.season_title }}</div></div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pokemon_slot %}
+{% block title %}Salón de la Fama · Liga Star Path{% endblock %}
+{% block content %}
+<h1>🏆 Salón de la Fama</h1>
+<p class="muted">Cada registro conserva el equipo exacto con el que se ganó el campeonato, aunque el entrenador lo cambie después.</p>
+{% for e in entries %}
+  {% set snap = e.champion_team_snapshot %}
+  <article class="card hof-entry" id="hof-{{ e.id }}">
+    <header class="hof-head">
+      <img class="avatar-md" alt=""
+           src="{{ url_for('main.avatar_file', filename=e.avatar_snapshot) if e.avatar_snapshot else url_for('static', filename='img/default_avatar.svg') }}">
+      <div>
+        <div class="hof-season">{{ e.season_title }}</div>
+        <h2>{{ e.trainer_name_snapshot }}</h2>
+        <div class="muted small">Ingresó el {{ e.inducted_at.strftime('%d/%m/%Y') }} · {{ snap.team_name }} ({{ snap.format_tag }})</div>
+      </div>
+    </header>
+    <div class="team-grid">
+      {% for m in snap.members %}
+        {{ pokemon_slot(m.sprite_url, m.display_name or m.species|replace('-', ' ')|title, m.nickname, m.types, m.item, m.ability, m.tera_type) }}
+      {% endfor %}
+    </div>
+    {% if e.admin_notes %}<p class="hof-notes">{{ e.admin_notes }}</p>{% endif %}
+  </article>
+{% else %}
+  <p class="muted">Aún no hay campeones. ¡Podrías ser el primero!</p>
+{% endfor %}
+{% endblock %}

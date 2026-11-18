@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% from "_macros.html" import badge_icon %}
+{% block title %}Panel de Líder · Liga Star Path{% endblock %}
+{% block content %}
+<h1>Panel de Líder</h1>
+
+{% set badge = current_user.led_badge %}
+{% if current_user.role == 'admin' %}
+  <p class="muted">Como Administrador puedes otorgar o revocar <strong>cualquier</strong> medalla.</p>
+{% elif badge %}
+  <div class="card gym">
+    {{ badge_icon(badge, 56) }}
+    <div><div class="muted small">Custodias la</div><strong>{{ badge.name }}</strong></div>
+  </div>
+{% else %}
+  <div class="flash flash-warning">Aún no tienes una medalla asignada. Pide a un Administrador que te vincule a tu gimnasio.</div>
+{% endif %}
+
+<section class="card">
+  <h2>Buscar retador</h2>
+  <div class="ac">
+    <input type="search" id="user-search" class="ac-input" placeholder="Nombre de usuario o ID…" autocomplete="off" autofocus>
+  </div>
+  <ul id="user-results" class="user-results"></ul>
+</section>
+
+{% if recent %}
+<section class="card">
+  <h2>Últimas medallas que otorgaste</h2>
+  <table class="table">
+    <thead><tr><th>Retador</th><th>Fecha</th><th>Notas</th></tr></thead>
+    <tbody>
+    {% for ub in recent %}
+      <tr>
+        <td><a href="{{ url_for('leader.challenger', user_id=ub.user_id) }}">{{ ub.user.username }}</a></td>
+        <td>{{ ub.awarded_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ ub.battle_notes or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const input = document.getElementById('user-search');
+  const out = document.getElementById('user-results');
+  let t;
+  input.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(async () => {
+      const q = input.value.trim();
+      out.innerHTML = '';
+      if (!q) return;
+      const r = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+      const users = await r.json();
+      if (!users.length) { out.innerHTML = '<li class="muted">Sin resultados</li>'; return; }
+      users.forEach(u => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = `{{ url_for('leader.challenger', user_id=0) }}`.replace('/0', `/${u.id}`);
+        a.className = 'trainer-mini card';
+        const img = document.createElement('img'); img.src = u.avatar; img.className = 'avatar-sm'; img.alt = '';
+        const div = document.createElement('div');
+        const s = document.createElement('strong'); s.textContent = `${u.username} `;
+        const meta = document.createElement('div'); meta.className = 'muted small';
+        meta.textContent = `ID ${u.id} · ${u.role} · ${u.badges} medallas`;
+        div.append(s, meta); a.append(img, div); li.appendChild(a); out.appendChild(li);
+      });
+    }, 200);
+  });
+})();
+</script>
+{% endblock %}
